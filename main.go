@@ -8,7 +8,11 @@ import (
 // cleanInput splits the users string input into "words" based on whitespace, lowercases the input, and trims
 // any leading or trailing whitespace.
 func cleanInput(text string) []string {
-	return strings.Fields(text)
+	result := []string{}
+	for _, word := range strings.Fields(text) {
+		result = append(result, strings.ToLower(word))
+	}
+	return result
 }
 
 func main() {
