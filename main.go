@@ -1,5 +1,11 @@
 package main
 
+import (
+	"bufio"
+	"os"
+)
+
 func main() {
-	repl()
+	scanner := bufio.NewScanner(os.Stdin)
+	repl(scanner)
 }
