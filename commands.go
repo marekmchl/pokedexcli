@@ -3,8 +3,10 @@ package main
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/marekmchl/pokedexcli/internal/pokeapi"
+	"github.com/marekmchl/pokedexcli/internal/pokecache"
 )
 
 type cliCommand struct {
@@ -60,6 +62,8 @@ func commandExit(conf *Config) error {
 	return nil
 }
 
+var mapCache = pokecache.NewCache(5 * time.Second)
+
 func commandMap(conf *Config) error {
 	url := ""
 	if conf.Next == "" {
@@ -69,7 +73,7 @@ func commandMap(conf *Config) error {
 		url = conf.Next
 	}
 
-	data, err := pokeapi.GetMap(url)
+	data, err := pokeapi.GetMap(url, mapCache)
 	if err != nil {
 		return err
 	}
@@ -95,7 +99,7 @@ func commandMapBack(conf *Config) error {
 		url = conf.Previous
 	}
 
-	data, err := pokeapi.GetMap(url)
+	data, err := pokeapi.GetMap(url, mapCache)
 	if err != nil {
 		return err
 	}

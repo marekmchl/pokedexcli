@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+
+	"github.com/marekmchl/pokedexcli/internal/pokecache"
 )
 
 type Map struct {
@@ -17,23 +19,33 @@ type Map struct {
 	} `json:"results"`
 }
 
-func GetMap(url string) (Map, error) {
-	res, err := http.Get(url)
-	if err != nil {
-		return Map{}, fmt.Errorf("failed: pokapi.go - GetMap: %v", err)
-	}
-	defer res.Body.Close()
+func GetMap(url string, cache pokecache.Cache) (Map, error) {
+	jsonData := []byte{}
+	cashed, found := cache.Get(url)
+	if found {
+		// fmt.Println("(cached)")
+		jsonData = cashed
+	} else {
+		// fmt.Println("(downloaded)")
+		res, err := http.Get(url)
+		if err != nil {
+			return Map{}, fmt.Errorf("failed: pokapi.go - GetMap: %v", err)
+		}
+		defer res.Body.Close()
 
-	body, err := io.ReadAll(res.Body)
-	if res.StatusCode > 299 {
-		return Map{}, fmt.Errorf("failed: pokapi.go - GetMap: with status code: %d and\nbody: %s\n", res.StatusCode, body)
-	}
-	if err != nil {
-		return Map{}, fmt.Errorf("failed: pokapi.go - GetMap: %v", err)
+		body, err := io.ReadAll(res.Body)
+		if res.StatusCode > 299 {
+			return Map{}, fmt.Errorf("failed: pokapi.go - GetMap: with status code: %d and\nbody: %s\n", res.StatusCode, body)
+		}
+		if err != nil {
+			return Map{}, fmt.Errorf("failed: pokapi.go - GetMap: %v", err)
+		}
+		cache.Add(url, body)
+		jsonData = body
 	}
 
 	data := Map{}
-	if err := json.Unmarshal(body, &data); err != nil {
+	if err := json.Unmarshal(jsonData, &data); err != nil {
 		return Map{}, fmt.Errorf("failed: pokapi.go - GetMap: %v", err)
 	}
 
