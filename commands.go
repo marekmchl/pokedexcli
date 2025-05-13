@@ -1,11 +1,10 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
 	"os"
+
+	"github.com/marekmchl/pokedexcli/internal/pokeapi"
 )
 
 type cliCommand struct {
@@ -61,16 +60,6 @@ func commandExit(conf *Config) error {
 	return nil
 }
 
-type Map struct {
-	Count    int    `json:"count"`
-	Next     string `json:"next"`
-	Previous string `json:"previous"`
-	Results  []struct {
-		Name string `json:"name"`
-		Url  string `json:"url"`
-	} `json:"results"`
-}
-
 func commandMap(conf *Config) error {
 	url := ""
 	if conf.Next == "" {
@@ -78,26 +67,13 @@ func commandMap(conf *Config) error {
 
 	} else {
 		url = conf.Next
+	}
 
-	}
-	res, err := http.Get(url)
-	if err != nil {
-		return err
-	}
-	defer res.Body.Close()
-
-	body, err := io.ReadAll(res.Body)
-	if res.StatusCode > 299 {
-		return fmt.Errorf("Response failed with status code: %d and\nbody: %s\n", res.StatusCode, body)
-	}
+	data, err := pokeapi.GetMap(url)
 	if err != nil {
 		return err
 	}
 
-	data := Map{}
-	if err := json.Unmarshal(body, &data); err != nil {
-		return err
-	}
 	conf.Next = data.Next
 	conf.Previous = data.Previous
 
@@ -118,24 +94,12 @@ func commandMapBack(conf *Config) error {
 	} else {
 		url = conf.Previous
 	}
-	res, err := http.Get(url)
-	if err != nil {
-		return err
-	}
-	defer res.Body.Close()
 
-	body, err := io.ReadAll(res.Body)
-	if res.StatusCode > 299 {
-		return fmt.Errorf("Response failed with status code: %d and\nbody: %s\n", res.StatusCode, body)
-	}
+	data, err := pokeapi.GetMap(url)
 	if err != nil {
 		return err
 	}
 
-	data := Map{}
-	if err := json.Unmarshal(body, &data); err != nil {
-		return err
-	}
 	conf.Next = data.Next
 	conf.Previous = data.Previous
 
