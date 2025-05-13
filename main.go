@@ -7,5 +7,9 @@ import (
 
 func main() {
 	scanner := bufio.NewScanner(os.Stdin)
-	repl(scanner)
+	conf := &Config{
+		Next:     "",
+		Previous: "",
+	}
+	repl(scanner, conf)
 }
