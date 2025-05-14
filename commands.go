@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"os"
 	"time"
 
@@ -41,6 +42,11 @@ func getCommandRegistry() map[string]cliCommand {
 			name:        "explore",
 			description: "Displays the names of all the Pokémon located in a given area",
 			callback:    commandExplore,
+		},
+		"catch": {
+			name:        "catch",
+			description: "Attempts to catch the specified pokemon",
+			callback:    commandCatch,
 		},
 	}
 }
@@ -131,5 +137,26 @@ func commandExplore(conf *Config, input []string) error {
 		fmt.Printf(" - %s\n", pokemon)
 	}
 
+	return nil
+}
+
+var pokedex = make(map[string]pokeapi.Pokemon)
+
+func commandCatch(conf *Config, input []string) error {
+	pokemonName := input[0]
+	pokemonMap, err := pokeapi.GetPokemon(pokemonName)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Throwing a Pokeball at %s...\n", pokemonName)
+
+	rand := float64(rand.Intn(pokemonMap.BaseExperience)) * 1.5
+	if rand > float64(pokemonMap.BaseExperience) {
+		fmt.Printf("%v was caught!\n", pokemonName)
+		pokedex[pokemonName] = *pokemonMap
+		return nil
+	}
+	fmt.Printf("%v escaped!\n", pokemonName)
 	return nil
 }
