@@ -28,11 +28,12 @@ func repl(scanner *bufio.Scanner, conf *Config) {
 		if !ok {
 			panic(fmt.Errorf("scanner failed"))
 		}
-		command, found := getCommandRegistry()[cleanInput(scanner.Text())[0]]
+		input := cleanInput(scanner.Text())
+		command, found := getCommandRegistry()[input[0]]
 		if !found {
 			fmt.Println("Unknown command")
 		} else {
-			err := command.callback(conf)
+			err := command.callback(conf, input[1:])
 			if err != nil {
 				fmt.Println(err)
 			}

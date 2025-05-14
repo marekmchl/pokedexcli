@@ -12,7 +12,7 @@ import (
 type cliCommand struct {
 	name        string
 	description string
-	callback    func(*Config) error
+	callback    func(*Config, []string) error
 }
 
 func getCommandRegistry() map[string]cliCommand {
@@ -37,6 +37,11 @@ func getCommandRegistry() map[string]cliCommand {
 			description: "Displays the names of the previous 20 location areas",
 			callback:    commandMapBack,
 		},
+		"explore": {
+			name:        "explore",
+			description: "Displays the names of all the Pokémon located in a given area",
+			callback:    commandExplore,
+		},
 	}
 }
 
@@ -48,7 +53,7 @@ func makeUsage() string {
 	return result
 }
 
-func commandHelp(conf *Config) error {
+func commandHelp(conf *Config, input []string) error {
 	fmt.Println("Welcome to the Pokedex!")
 	fmt.Println("Usage:")
 	fmt.Println()
@@ -56,7 +61,7 @@ func commandHelp(conf *Config) error {
 	return nil
 }
 
-func commandExit(conf *Config) error {
+func commandExit(conf *Config, input []string) error {
 	fmt.Println("Closing the Pokedex... Goodbye!")
 	os.Exit(0)
 	return nil
@@ -64,7 +69,7 @@ func commandExit(conf *Config) error {
 
 var mapCache = pokecache.NewCache(5 * time.Second)
 
-func commandMap(conf *Config) error {
+func commandMap(conf *Config, input []string) error {
 	url := ""
 	if conf.Next == "" {
 		url = "https://pokeapi.co/api/v2/location-area/?offset=0&limit=20"
@@ -88,7 +93,7 @@ func commandMap(conf *Config) error {
 	return nil
 }
 
-func commandMapBack(conf *Config) error {
+func commandMapBack(conf *Config, input []string) error {
 	url := ""
 	if conf.Previous == "" {
 		fmt.Println("you're on the first page")
@@ -109,6 +114,21 @@ func commandMapBack(conf *Config) error {
 
 	for _, res := range data.Results {
 		fmt.Println(res.Name)
+	}
+
+	return nil
+}
+
+func commandExplore(conf *Config, input []string) error {
+	pokemons, err := pokeapi.GetPokemons(input[0])
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Exploring %s...\n", input[0])
+	fmt.Println("Found Pokemon:")
+	for _, pokemon := range pokemons {
+		fmt.Printf(" - %s\n", pokemon)
 	}
 
 	return nil
