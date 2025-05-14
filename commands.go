@@ -48,6 +48,11 @@ func getCommandRegistry() map[string]cliCommand {
 			description: "Attempts to catch the specified pokemon",
 			callback:    commandCatch,
 		},
+		"inspect": {
+			name:        "inspect",
+			description: "Displays statistics of the specified Pokemon from your Pokedex",
+			callback:    commandInspect,
+		},
 	}
 }
 
@@ -158,5 +163,20 @@ func commandCatch(conf *Config, input []string) error {
 		return nil
 	}
 	fmt.Printf("%v escaped!\n", pokemonName)
+	return nil
+}
+
+func commandInspect(conf *Config, input []string) error {
+	pokemonName := input[0]
+	pokemonMap, found := pokedex[pokemonName]
+	if !found {
+		return fmt.Errorf("%v is not in your Pokedex yet\n", pokemonName)
+	}
+	fmt.Printf("Name: %v\nHeight: %v\nWeight: %v\nStats:\n - hp: %v\n - attack: %v\n - defense: %v\n - special-attack: %v\n - special-defense: %v\n - speed: %v\n", pokemonName, pokemonMap.Height, pokemonMap.Weight, pokemonMap.Stats[0].BaseStat, pokemonMap.Stats[1].BaseStat, pokemonMap.Stats[2].BaseStat, pokemonMap.Stats[3].BaseStat, pokemonMap.Stats[4].BaseStat, pokemonMap.Stats[5].BaseStat)
+	fmt.Println("Types:")
+	for _, pokemonType := range pokemonMap.Types {
+		fmt.Printf(" - %v\n", pokemonType.Type.Name)
+	}
+
 	return nil
 }
